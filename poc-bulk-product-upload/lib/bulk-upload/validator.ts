@@ -10,11 +10,7 @@ const validateCommonFields = (
   const errors: RowError[] = [];
 
   if (!row.name || String(row.name).trim() === "") {
-    errors.push({
-      rowNumber,
-      field: "name",
-      issue: "Missing name",
-    });
+    errors.push({ rowNumber, field: "name", issue: "Missing name" });
   }
 
   const numericFields: Array<keyof ProductUploadRow> = [
@@ -26,14 +22,9 @@ const validateCommonFields = (
 
   numericFields.forEach((field) => {
     const value = row[field];
-
     if (value !== "" && value !== undefined && value !== null) {
       if (toNumber(value) === null) {
-        errors.push({
-          rowNumber,
-          field,
-          issue: `Invalid ${String(field)}`,
-        });
+        errors.push({ rowNumber, field, issue: `Invalid ${String(field)}` });
       }
     }
   });
@@ -47,7 +38,6 @@ const validateCommonFields = (
 
   booleanFields.forEach((field) => {
     const value = row[field];
-
     if (toBoolean(value) === null) {
       errors.push({
         rowNumber,
@@ -61,11 +51,7 @@ const validateCommonFields = (
     row.condition &&
     !allowedConditions.includes(String(row.condition).trim().toLowerCase())
   ) {
-    errors.push({
-      rowNumber,
-      field: "condition",
-      issue: "Invalid condition",
-    });
+    errors.push({ rowNumber, field: "condition", issue: "Invalid condition" });
   }
 
   const jsonFields: Array<keyof ProductUploadRow> = [
@@ -76,10 +62,8 @@ const validateCommonFields = (
 
   jsonFields.forEach((field) => {
     const value = row[field];
-
     if (value !== "" && value !== undefined && value !== null) {
       const parsedValue = parseJsonField(value);
-
       if (parsedValue === null) {
         errors.push({
           rowNumber,
@@ -103,17 +87,9 @@ const validateSimpleProduct = (
   const sku = String(row.sku || "").trim();
 
   if (!sku) {
-    errors.push({
-      rowNumber,
-      field: "sku",
-      issue: "Missing sku",
-    });
+    errors.push({ rowNumber, field: "sku", issue: "Missing sku" });
   } else if (seenSkus.has(sku)) {
-    errors.push({
-      rowNumber,
-      field: "sku",
-      issue: "Duplicate SKU",
-    });
+    errors.push({ rowNumber, field: "sku", issue: "Duplicate SKU" });
   } else {
     seenSkus.add(sku);
   }
@@ -127,11 +103,7 @@ const validateSimpleProduct = (
   }
 
   if (toNumber(row.stock) === null) {
-    errors.push({
-      rowNumber,
-      field: "stock",
-      issue: "Missing stock",
-    });
+    errors.push({ rowNumber, field: "stock", issue: "Missing stock" });
   }
 
   if (String(row.variant_types || "").trim() !== "") {
@@ -179,12 +151,10 @@ const validateVariantProduct = (
     });
   }
 
-  if (errors.length > 0) {
-    return errors;
-  }
+  if (errors.length > 0) return errors;
 
   const variantTypeNames = variantTypes
-    .map((variantType: { name?: string }) => variantType?.name)
+    .map((vt: { name?: string }) => vt?.name)
     .filter(Boolean) as string[];
 
   variantCombinations.forEach(
@@ -237,7 +207,6 @@ const validateVariantProduct = (
           field: "variant_combinations",
           issue: `Variant ${index + 1} missing attributes`,
         });
-
         return;
       }
 
@@ -277,8 +246,5 @@ export const validateRow = (
     errors.push(...validateVariantProduct(row, rowNumber, seenSkus));
   }
 
-  return {
-    isValid: errors.length === 0,
-    errors,
-  };
+  return { isValid: errors.length === 0, errors };
 };

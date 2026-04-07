@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { parseProductFile } from "@/lib/bulk-upload/parser";
-import type { ProductUploadRow, RowError } from "./types";
-import { validateRow } from "./validator";
+import { parseProductFile } from "../../../lib/bulk-upload/parser";
+import type { ProductUploadRow, RowError } from "../../../lib/bulk-upload/types";
+import { validateRow } from "../../../lib/bulk-upload/validator";
+import { transformRow } from "../../../lib/bulk-upload/transformer";
 
 export const POST = async (request: Request) => {
   try {
@@ -34,6 +35,8 @@ export const POST = async (request: Request) => {
       }
     });
 
+    const transformedValidRows = validRows.map((row) => transformRow(row));
+
     console.log("Total records processed:", rows.length);
     console.log("Valid records:", validRows.length);
     console.log("Invalid records:", invalidRows.length);
@@ -42,17 +45,19 @@ export const POST = async (request: Request) => {
       console.log(`Row ${error.rowNumber} - ${error.field} - ${error.issue}`);
     });
 
+    console.log("Processed valid data:");
+    console.log(JSON.stringify(transformedValidRows, null, 2));
+
     return NextResponse.json({
-      message: "File parsed and validated successfully",
+      message: "File parsed, validated, and transformed successfully",
       totalRecordsProcessed: rows.length,
       validRecords: validRows.length,
       invalidRecords: invalidRows.length,
       errors: rowErrors,
-      validRows,
+      processedData: transformedValidRows,
     });
   } catch (error) {
-    console.error("Bulk upload parse/validate error:", error);
-
+    console.error("Bulk upload parse/validate/transform error:", error);
     return NextResponse.json(
       { error: "Failed to process file" },
       { status: 500 },
